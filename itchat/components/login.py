@@ -37,17 +37,13 @@ def login(self, enableCmdQR=False, picDir=None, qrCallback=None,
         return
     self.isLogging = True
     while self.isLogging:
-        uuid = push_login(self)
-        if uuid:
-            qrStorage = io.BytesIO()
-        else:
-            logger.info('Getting uuid of QR code.')
-            while not self.get_QRuuid():
-                time.sleep(1)
-            logger.info('Downloading QR code.')
-            qrStorage = self.get_QR(enableCmdQR=enableCmdQR,
-                picDir=picDir, qrCallback=qrCallback)
-            logger.info('Please scan the QR code to log in.')
+        logger.info('Getting uuid of QR code.')
+        while not self.get_QRuuid():
+            time.sleep(1)
+        logger.info('Downloading QR code.')
+        qrStorage = self.get_QR(enableCmdQR=enableCmdQR,
+            picDir=picDir, qrCallback=qrCallback)
+        logger.info('Please scan the QR code to log in.')
         isLoggedIn = False
         while not isLoggedIn:
             status = self.check_login()
@@ -75,23 +71,11 @@ def login(self, enableCmdQR=False, picDir=None, qrCallback=None,
         r = loginCallback()
     else:
         utils.clear_screen()
-        if os.path.exists(picDir or config.DEFAULT_QR):
-            os.remove(picDir or config.DEFAULT_QR)
+        if os.path.exists(picDir or self.uuid + config.DEFAULT_QR):
+            os.remove(picDir or self.uuid + config.DEFAULT_QR)
         logger.info('Login successfully as %s' % self.storageClass.nickName)
     self.start_receiving(exitCallback)
     self.isLogging = False
-
-def push_login(core):
-    cookiesDict = core.s.cookies.get_dict()
-    if 'wxuin' in cookiesDict:
-        url = '%s/cgi-bin/mmwebwx-bin/webwxpushloginurl?uin=%s' % (
-            config.BASE_URL, cookiesDict['wxuin'])
-        headers = { 'User-Agent' : config.USER_AGENT }
-        r = core.s.get(url, headers=headers).json()
-        if 'uuid' in r and r.get('ret') in (0, '0'):
-            core.uuid = r['uuid']
-            return r['uuid']
-    return False
 
 def get_QRuuid(self):
     url = '%s/jslogin' % config.BASE_URL
@@ -108,7 +92,7 @@ def get_QRuuid(self):
 
 def get_QR(self, uuid=None, enableCmdQR=False, picDir=None, qrCallback=None):
     uuid = uuid or self.uuid
-    picDir = picDir or config.DEFAULT_QR
+    picDir = picDir or uuid + config.DEFAULT_QR
     qrStorage = io.BytesIO()
     qrCode = QRCode('https://login.weixin.qq.com/l/' + uuid)
     qrCode.png(qrStorage, scale=10)
@@ -165,8 +149,8 @@ def process_login_info(core, loginContent):
             core.loginInfo['fileUrl'], core.loginInfo['syncUrl'] = \
                 fileUrl, syncUrl
             break
-    else:
-        core.loginInfo['fileUrl'] = core.loginInfo['syncUrl'] = core.loginInfo['url']
+        else:
+            core.loginInfo['fileUrl'] = core.loginInfo['syncUrl'] = core.loginInfo['url']
     core.loginInfo['deviceid'] = 'e' + repr(random.random())[2:17]
     core.loginInfo['logintime'] = int(time.time() * 1e3)
     core.loginInfo['BaseRequest'] = {}
