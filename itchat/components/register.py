@@ -44,6 +44,8 @@ def configured_reply(self):
     '''
     try:
         msg = self.msgList.get(timeout=1)
+        if msg is None:
+            return
     except Queue.Empty:
         pass
     else:
