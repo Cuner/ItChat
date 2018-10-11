@@ -146,7 +146,7 @@ class User(AbstractUserDict):
         super(User, self).__init__(*args, **kwargs)
         self.__setstate__(None)
     def update(self):
-        r = self.core.update_friend(self.userName)
+        r = self.core.update_friend()
         if r:
             update_info_dict(self, r)
         return r

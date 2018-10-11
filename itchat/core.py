@@ -154,7 +154,7 @@ class Core(object):
             it is defined in components/contact.py
         '''
         raise NotImplementedError()
-    def update_friend(self, userName):
+    def update_friend(self):
         ''' update chatroom
             for friend contact
                 - once called, updated info will be stored
