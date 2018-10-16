@@ -20,7 +20,7 @@ def invite_micro_bus(msg):
         inviteIdResult = re.search(regx_inviteId, content)
         inviteCodeResult = re.search(regx_inviteCode, content)
         if inviteIdResult:
-            inviteId = inviteCodeResult.group(1)
+            inviteId = inviteIdResult.group(1)
         else:
             return
         if inviteCodeResult:
